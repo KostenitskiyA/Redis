@@ -1,0 +1,31 @@
+﻿name: Pull request into master workflow
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  DOTNET_VERSION: '9.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Code format
+        run: dotnet format
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
