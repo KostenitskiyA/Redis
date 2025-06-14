@@ -8,8 +8,7 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
 {
     private readonly IDatabase _database = connection.GetDatabase();
 
-    /// <inheritdoc />
-    public async Task<T?> GetStringAsync<T>(string key)
+    public async Task<T?> GetStringAsync<T>(string key, JsonSerializerOptions? options = null)
     {
         try
         {
@@ -18,7 +17,7 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
             if (value.IsNullOrEmpty)
                 return default;
 
-            var result = JsonSerializer.Deserialize<T?>(value!);
+            var result = JsonSerializer.Deserialize<T?>(value!, options);
 
             return result;
         }
@@ -27,27 +26,26 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
             return default;
         }
     }
-    
-    /// <inheritdoc />
-    public async Task<Dictionary<string, T>> GetStringsDictionaryAsync<T>(string pattern)
+
+    public async Task<Dictionary<string, T>> GetStringsAsync<T>(string pattern, JsonSerializerOptions? options = null)
     {
         try
         {
             var server = connection.GetServer(connection.GetEndPoints().First());
             var keys = server.Keys(pattern: pattern).ToArray();
-            
+
             var result = new Dictionary<string, T>();
-            
+
             foreach (var key in keys)
             {
                 var value = await _database.StringGetAsync(key);
 
                 if (value.IsNullOrEmpty)
                     continue;
-                
-                result[key!] = JsonSerializer.Deserialize<T?>(value!)!;
+
+                result[key!] = JsonSerializer.Deserialize<T?>(value!, options)!;
             }
-            
+
             return result;
         }
         catch
@@ -56,7 +54,6 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
         }
     }
 
-    /// <inheritdoc />
     public async Task<bool> SetStringAsync<T>(
         string key,
         T data,
