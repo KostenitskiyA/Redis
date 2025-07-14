@@ -9,7 +9,10 @@ namespace Redis.Extensions;
 
 public static class RedisExtensions
 {
-    public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddRedis(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHealthChecksBuilder? healthChecksBuilder = null)
     {
         var section = configuration.GetSection(nameof(RedisConfiguration));
         if (section is null)
@@ -18,6 +21,8 @@ public static class RedisExtensions
         var options = section.Get<RedisConfiguration>();
         if (options is null)
             throw new Exception($"{nameof(RedisConfiguration)} options not found");
+
+        healthChecksBuilder?.AddRedis(options.Configuration);
 
         services.Configure<RedisConfiguration>(section);
         services.AddTransient<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(options.Configuration));

@@ -17,9 +17,9 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
             if (value.IsNullOrEmpty)
                 return default;
 
-            var result = JsonSerializer.Deserialize<T?>(value!, options);
+            var data = JsonSerializer.Deserialize<T?>(value!, options);
 
-            return result;
+            return data ?? default;
         }
         catch
         {
@@ -32,18 +32,21 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
         try
         {
             var server = connection.GetServer(connection.GetEndPoints().First());
-            var keys = server.Keys(pattern: pattern).ToArray();
-
             var result = new Dictionary<string, T>();
 
-            foreach (var key in keys)
+            await foreach (var key in server.KeysAsync(pattern: pattern))
             {
                 var value = await _database.StringGetAsync(key);
 
                 if (value.IsNullOrEmpty)
                     continue;
 
-                result[key!] = JsonSerializer.Deserialize<T?>(value!, options)!;
+                var data = JsonSerializer.Deserialize<T?>(value!, options);
+
+                if (data is null)
+                    continue;
+
+                result[key!] = data;
             }
 
             return result;
