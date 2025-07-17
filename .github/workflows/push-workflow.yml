@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          source-url: https://nuget.pkg.github.com/KostenitskiyA/index.json
+          auth-token: ${{ secrets.API_KEY }}
 
       - name: Restore
         run: dotnet restore
