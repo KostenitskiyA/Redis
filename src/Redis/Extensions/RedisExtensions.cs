@@ -5,6 +5,7 @@ using Redis.Interfaces;
 using Redis.Models;
 using Redis.Services;
 using Share.Extensions;
+using Share.Interceptors;
 
 namespace Redis.Extensions;
 
@@ -20,7 +21,7 @@ public static class RedisExtensions
         healthChecksBuilder?.AddRedis(options.Configuration);
 
         services.AddTransient<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(options.Configuration));
-        services.AddTransient<IRedisService, RedisService>();
+        services.AddTransient<IRedisService, RedisService, TracingInterceptor>();
 
         return services;
     }
