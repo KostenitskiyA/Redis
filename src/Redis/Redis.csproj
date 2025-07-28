@@ -9,7 +9,7 @@
         <Nullable>enable</Nullable>
 
         <PackageId>CAM.Redis</PackageId>
-        <Version>0.0.3</Version>
+        <Version>0.0.4</Version>
         <Authors>KostenitskiyA</Authors>
         <RepositoryUrl>https://github.com/KostenitskiyA/Redis</RepositoryUrl>
     </PropertyGroup>
