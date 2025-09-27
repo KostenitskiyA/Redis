@@ -10,18 +10,16 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
 
     public async Task<T?> GetStringAsync<T>(string key, JsonSerializerOptions? options = null)
     {
+        var value = await _database.StringGetAsync(key);
+
+        if (value.IsNullOrEmpty)
+            return default;
+
         try
         {
-            var value = await _database.StringGetAsync(key);
-
-            if (value.IsNullOrEmpty)
-                return default;
-
-            var data = JsonSerializer.Deserialize<T?>(value!, options);
-
-            return data ?? default;
+            return JsonSerializer.Deserialize<T>(value.ToString(), options);
         }
-        catch
+        catch (JsonException)
         {
             return default;
         }
@@ -61,18 +59,12 @@ public class RedisService(IConnectionMultiplexer connection) : IRedisService
         string key,
         T data,
         JsonSerializerOptions? options = null,
-        TimeSpan? expireTime = null)
-    {
-        try
-        {
-            return await _database.StringSetAsync(
-                key,
-                JsonSerializer.Serialize(data, options),
-                expireTime);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+        TimeSpan? expireTime = null) =>
+        await _database.StringSetAsync(key, JsonSerializer.Serialize(data, options), expireTime);
+
+    public async Task<bool> DeleteKeyAsync(string key) =>
+        await _database.KeyDeleteAsync(key);
+
+    public async Task<long> DeleteKeysAsync(string[] keys) =>
+        await _database.KeyDeleteAsync(keys.Select(key => (RedisKey)key).ToArray());
 }

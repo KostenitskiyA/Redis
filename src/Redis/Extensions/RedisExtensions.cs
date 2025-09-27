@@ -20,7 +20,12 @@ public static class RedisExtensions
 
         healthChecksBuilder?.AddRedis(options.Configuration);
 
-        services.AddTransient<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(options.Configuration));
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+        {
+            var redisConfiguration = ConfigurationOptions.Parse(options.Configuration, true);
+            redisConfiguration.AllowAdmin = true;
+            return ConnectionMultiplexer.Connect(redisConfiguration);
+        });
         services.AddTransient<IRedisService, RedisService, TracingInterceptor>();
 
         return services;

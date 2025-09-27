@@ -13,4 +13,8 @@ public interface IRedisService
         T data,
         JsonSerializerOptions? options = null,
         TimeSpan? expireTime = null);
+
+    Task<bool> DeleteKeyAsync(string key);
+
+    Task<long> DeleteKeysAsync(string[] keys);
 }
